@@ -9,6 +9,11 @@ You can [try it out here](https://antimatter15.com/splat/).
 https://github.com/antimatter15/splat/assets/30054/878d5d34-e0a7-4336-85df-111ff22daf4b
 
 
+## 使用方式
+
+1. 在项目目录下启动一个服务 `python -m http.server 8000`
+2. 将待可视化文件放到项目目录下 `splat/bicycle.splat`
+3. 浏览器中输入 `http://localhost:8000/?url=bicycle.splat` 即可打开
 
 ## controls
 
