@@ -156,6 +156,7 @@ let cameras = [
 ];
 
 let camera = cameras[0];
+let isMultiCamMode = false; // 添加多相机模式状态
 
 function getProjectionMatrix(fx, fy, width, height) {
     const znear = 0.2;
@@ -939,7 +940,22 @@ async function main() {
             currentCameraIndex = (currentCameraIndex + 1) % cameras.length;
             viewMatrix = getViewMatrix(cameras[currentCameraIndex]);
         }
-        camid.innerText = "cam  " + currentCameraIndex;
+        if (e.key === "\\") {
+            isMultiCamMode = !isMultiCamMode;
+            if (isMultiCamMode) {
+                gl.canvas.style.width = "100vw";
+                gl.canvas.style.height = "100vh";
+                gl.canvas.style.display = "grid";
+                gl.canvas.style.gridTemplateColumns = "repeat(3, 1fr)";
+                gl.canvas.style.gridTemplateRows = "repeat(2, 1fr)";
+            } else {
+                gl.canvas.style.width = "100%";
+                gl.canvas.style.height = "100%";
+                gl.canvas.style.display = "block";
+            }
+            resize();
+        }
+        camid.innerText = isMultiCamMode ? "Multi-Cam Mode" : "cam  " + currentCameraIndex;
         if (e.code == "KeyV") {
             location.hash =
                 "#" +
@@ -1358,9 +1374,34 @@ async function main() {
 
         if (vertexCount > 0) {
             document.getElementById("spinner").style.display = "none";
-            gl.uniformMatrix4fv(u_view, false, actualViewMatrix);
             gl.clear(gl.COLOR_BUFFER_BIT);
-            gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, vertexCount);
+
+            if (isMultiCamMode) {
+                // 在多相机模式下渲染6个视图
+                const viewWidth = gl.canvas.width / 3;
+                const viewHeight = gl.canvas.height / 2;
+
+                for (let i = 0; i < 6; i++) {
+                    const row = Math.floor(i / 3);
+                    const col = i % 3;
+                    
+                    gl.viewport(
+                        col * viewWidth,
+                        row * viewHeight,
+                        viewWidth,
+                        viewHeight
+                    );
+
+                    const camViewMatrix = getViewMatrix(cameras[i]);
+                    gl.uniformMatrix4fv(u_view, false, camViewMatrix);
+                    gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, vertexCount);
+                }
+            } else {
+                // 单相机模式
+                gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+                gl.uniformMatrix4fv(u_view, false, actualViewMatrix);
+                gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, vertexCount);
+            }
         } else {
             gl.clear(gl.COLOR_BUFFER_BIT);
             document.getElementById("spinner").style.display = "";
