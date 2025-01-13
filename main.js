@@ -1392,7 +1392,11 @@ async function main() {
                         viewHeight
                     );
 
-                    const camViewMatrix = getViewMatrix(cameras[i]);
+                    // 将当前相机矩阵与用户交互产生的变换矩阵相乘
+                    const camViewMatrix = multiply4(
+                        actualViewMatrix,
+                        getViewMatrix(cameras[i])
+                    );
                     gl.uniformMatrix4fv(u_view, false, camViewMatrix);
                     gl.drawArraysInstanced(gl.TRIANGLE_FAN, 0, 4, vertexCount);
                 }
